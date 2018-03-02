@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.ondrej.mejzlik.netspeedmonitor"
+    android:installLocation="internalOnly">
+
+    <!-- Install location is needed because boot broadcast does not work on sd cards -->
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <!-- Do not export the service, only this app needs it. -->
+        <service
+            android:name=".NetMonitorService"
+            android:enabled="true"
+            android:exported="false" />
+
+        <receiver
+            android:name=".ScreenReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SCREEN_ON" />
+                <action android:name="android.intent.action.SCREEN_OFF" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".NetMonitorStarter">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/net_monitor_starter_info" />
+        </receiver>
+
+        <activity android:name=".StarterActivity"></activity>
+    </application>
+
+</manifest>

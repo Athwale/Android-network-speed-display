@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">NetSpeedMonitor</string>
+    <string name="service_failed_to_start">Service failed to start</string>
+    <string name="service_created">Net speed monitor service created, you can remove the widget now.</string>
+    <string name="service_running">The net speed service is running</string>
+    <string name="add_widget">Add widget</string>
+    <string name="widget_icon_description">Net monitor starter icon</string>
+    <string name="widget_name">Start</string>
+</resources>
