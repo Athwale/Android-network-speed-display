@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">NetSpeedMonitor</string>
+    <string name="channel_name">Net monitor channel</string>
+    <string name="channel_description">Net monitor channel</string>
     <string name="service_failed_to_start">Service failed to start</string>
     <string name="service_created">Net speed monitor service created, you can remove the widget now.</string>
     <string name="service_running">The net speed service is running</string>

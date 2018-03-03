@@ -37,7 +37,7 @@
                 android:resource="@xml/net_monitor_starter_info" />
         </receiver>
 
-        <activity android:name=".StarterActivity"></activity>
+        <activity android:name=".StarterActivity" />
     </application>
 
 </manifest>

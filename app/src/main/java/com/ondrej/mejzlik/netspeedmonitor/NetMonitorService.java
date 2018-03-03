@@ -1,5 +1,6 @@
 package com.ondrej.mejzlik.netspeedmonitor;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
@@ -12,14 +13,17 @@ import android.util.Log;
 import android.widget.Toast;
 
 import static com.ondrej.mejzlik.netspeedmonitor.ScreenReceiver.SCREEN_STATE_KEY;
+import static com.ondrej.mejzlik.netspeedmonitor.StarterActivity.CHANNEL_ID;
 import static com.ondrej.mejzlik.netspeedmonitor.StarterActivity.MANUAL_START;
 
 public class NetMonitorService extends Service {
     public static final String UPLOAD_KEY = "uploadKey";
     public static final String DOWNLOAD_KEY = "downloadKey";
+    public static final int SERVICE_UNIQUE_ID = 7564;
     private BroadcastReceiver screenReceiver = null;
     private Handler mainHandler = null;
     private Thread workerThread = null;
+    private Notification notification = null;
 
     /**
      * Screen On and Off broadcasts can not be received by manifest declared receivers, it has to be
@@ -37,6 +41,15 @@ public class NetMonitorService extends Service {
         this.screenReceiver = new ScreenReceiver();
         registerReceiver(this.screenReceiver, filter);
 
+        // This service is a foreground service, so we need a notification, it will be used to
+        // provide info about the speeds anyway
+        this.notification = new Notification.Builder(this, CHANNEL_ID)
+                .setContentTitle("title")
+                .setContentText("content")
+                .setSmallIcon(R.drawable.widget_cog_icon)
+                .build();
+
+        startForeground(SERVICE_UNIQUE_ID, this.notification);
 
         // Get the main thread handler which we are going to use to communicate with UI.
         this.mainHandler = new Handler(getMainLooper()) {
@@ -65,8 +78,6 @@ public class NetMonitorService extends Service {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        //TODO display text in notification area. We need another thread and be able to stop and
-        //TODO run it from this method.
         Log.d("SERVICE", "SERVICE ON START COMMAND CALLED");
         if (intent != null) {
             boolean state = intent.getBooleanExtra(SCREEN_STATE_KEY, false);
