@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.util.Log;
 
 /**
+ * Created by Ondrej Mejzlik on 3/4/18.
  * This class receives broadcasts when screen is turned on or off. These broadcasts can not be
  * declared in manifest as they are protected. Therefore this receiver is for the first time
  * registered when the NetMonitorService is first run in the onCreate method. And is unregistered

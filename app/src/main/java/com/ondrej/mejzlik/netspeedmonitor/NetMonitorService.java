@@ -1,8 +1,10 @@
 package com.ondrej.mejzlik.netspeedmonitor;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -16,6 +18,9 @@ import static com.ondrej.mejzlik.netspeedmonitor.ScreenReceiver.SCREEN_STATE_KEY
 import static com.ondrej.mejzlik.netspeedmonitor.StarterActivity.CHANNEL_ID;
 import static com.ondrej.mejzlik.netspeedmonitor.StarterActivity.MANUAL_START;
 
+/**
+ * Created by Ondrej Mejzlik on 3/4/18.
+ */
 public class NetMonitorService extends Service {
     public static final String UPLOAD_KEY = "uploadKey";
     public static final String DOWNLOAD_KEY = "downloadKey";
@@ -23,7 +28,9 @@ public class NetMonitorService extends Service {
     private BroadcastReceiver screenReceiver = null;
     private Handler mainHandler = null;
     private Thread workerThread = null;
+    private Notification.Builder builder = null;
     private Notification notification = null;
+    private NotificationManager notificationManager = null;
 
     /**
      * Screen On and Off broadcasts can not be received by manifest declared receivers, it has to be
@@ -40,15 +47,15 @@ public class NetMonitorService extends Service {
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         this.screenReceiver = new ScreenReceiver();
         registerReceiver(this.screenReceiver, filter);
+        this.notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         // This service is a foreground service, so we need a notification, it will be used to
-        // provide info about the speeds anyway
-        this.notification = new Notification.Builder(this, CHANNEL_ID)
-                .setContentTitle("title")
-                .setContentText("content")
-                .setSmallIcon(R.drawable.widget_cog_icon)
-                .build();
+        // provide info about the speeds anyway. To update notification, we need to use the same
+        // builder.
+        this.builder = new Notification.Builder(this, CHANNEL_ID);
+        this.notification = this.builder.setSmallIcon(R.drawable.widget_cog_icon).setOnlyAlertOnce(true).build();
 
+        // Start this service as foreground service, it is less likely to get killed.
         startForeground(SERVICE_UNIQUE_ID, this.notification);
 
         // Get the main thread handler which we are going to use to communicate with UI.
@@ -60,6 +67,15 @@ public class NetMonitorService extends Service {
                 Log.d("MESSAGE", "FROM THREAD");
                 Bundle data = inputMessage.getData();
                 if (data.containsKey(UPLOAD_KEY) && data.containsKey(DOWNLOAD_KEY)) {
+                    // Construct the string
+                    String speeds = "Download: " + String.valueOf(data.getDouble(DOWNLOAD_KEY));
+                    speeds += " ";
+                    speeds += "Upload: " + String.valueOf(data.getDouble(UPLOAD_KEY));
+
+                    // TODO make more icons and display approx speed by them
+                    builder.setContentText(speeds);
+                    // Update the icon
+                    notificationManager.notify(SERVICE_UNIQUE_ID, notification);
                     Log.d("MESSAGE", "UPLOAD " + String.valueOf(data.getDouble(UPLOAD_KEY)));
                     Log.d("MESSAGE", "DOWNLOAD " + String.valueOf(data.getDouble(DOWNLOAD_KEY)));
                 }
@@ -103,6 +119,7 @@ public class NetMonitorService extends Service {
                         // interrupt(method). On return the thread dies.
                         int i = 0;
                         while (!Thread.interrupted()) {
+                            // TODO implement file observer to measure net speed
                             i++;
                             Message message = mainHandler.obtainMessage();
                             Bundle data = new Bundle();

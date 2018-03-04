@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.widget.RemoteViews;
 
 /**
+ * Created by Ondrej Mejzlik on 3/4/18.
  * This class provides the starter widget. The only purpose is to be able to start the service, then
  * this widget can be removed from the screen.
  */

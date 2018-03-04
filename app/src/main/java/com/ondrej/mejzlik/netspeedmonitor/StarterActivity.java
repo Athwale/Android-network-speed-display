@@ -11,6 +11,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 /**
+ * Created by Ondrej Mejzlik on 3/4/18.
  * This is a helper starter activity that does not have any layout. It's purpose is to start the
  * service when the user clicks on the starter widget. It first checks whether the service is
  * already running and if so, tells the user and does not start it again.
