@@ -16,6 +16,9 @@ import android.util.Log;
 import android.widget.Toast;
 
 import static com.ondrej.mejzlik.netspeedmonitor.ScreenReceiver.SCREEN_STATE_KEY;
+import static com.ondrej.mejzlik.netspeedmonitor.SpeedCarrier.BITS;
+import static com.ondrej.mejzlik.netspeedmonitor.SpeedCarrier.K_BITS;
+import static com.ondrej.mejzlik.netspeedmonitor.SpeedCarrier.M_BITS;
 import static com.ondrej.mejzlik.netspeedmonitor.StarterActivity.CHANNEL_ID;
 import static com.ondrej.mejzlik.netspeedmonitor.StarterActivity.MANUAL_START;
 
@@ -32,7 +35,38 @@ public class NetMonitorService extends Service {
     private Notification.Builder builder = null;
     private Notification notification = null;
     private NotificationManager notificationManager = null;
-    private TrafficStats trafficStats = null;
+
+    private static SpeedCarrier calculateSpeed(long dlDifference, long upDifference) {
+        double speed = 0;
+        SpeedCarrier carrier = new SpeedCarrier();
+        // Calculate up speed
+        if (upDifference > 1000000) {
+            carrier.setUpType(M_BITS);
+            speed = upDifference / 1000000;
+            carrier.setUpSpeed(Math.round(speed));
+        } else if (upDifference > 1000) {
+            carrier.setUpType(K_BITS);
+            speed = upDifference / 1000;
+            carrier.setUpSpeed(Math.round(speed));
+        } else {
+            carrier.setUpType(BITS);
+            carrier.setUpSpeed(speed);
+        }
+        // Calculate dl speed
+        if (dlDifference > 1000000) {
+            carrier.setDlType(M_BITS);
+            speed = dlDifference / 1000000;
+            carrier.setDlSpeed(Math.round(speed));
+        } else if (dlDifference > 1000) {
+            carrier.setDlType(K_BITS);
+            speed = dlDifference / 1000;
+            carrier.setDlSpeed(Math.round(speed));
+        } else {
+            carrier.setDlType(BITS);
+            carrier.setDlSpeed(speed);
+        }
+        return carrier;
+    }
 
     /**
      * Screen On and Off broadcasts can not be received by manifest declared receivers, it has to be
@@ -69,10 +103,12 @@ public class NetMonitorService extends Service {
                 Log.d("MESSAGE", "FROM THREAD");
                 Bundle data = inputMessage.getData();
                 if (data.containsKey(UPLOAD_KEY) && data.containsKey(DOWNLOAD_KEY)) {
+                    SpeedCarrier carrier = calculateSpeed(data.getLong(DOWNLOAD_KEY), data.getLong(UPLOAD_KEY));
+
                     // Construct the string
-                    String speeds = "Download: " + String.valueOf(data.getDouble(DOWNLOAD_KEY));
+                    String speeds = "Download: " + carrier.getDlSpeed() + " " + carrier.TypeToString(carrier.getDlType());
                     speeds += " ";
-                    speeds += "Upload: " + String.valueOf(data.getDouble(UPLOAD_KEY));
+                    speeds += "Upload: " + carrier.getUpSpeed() + " " + carrier.TypeToString(carrier.getUpType());
 
                     // TODO make more icons and display approx speed by them
                     builder.setContentText(speeds);
@@ -120,22 +156,30 @@ public class NetMonitorService extends Service {
                         // Static method that returns the current thread interrupt status set by thread
                         // interrupt(method). On return the thread dies.
                         while (!Thread.interrupted()) {
-                            // TODO Get traffic stats to calculate the speed
-                            // Get initial value
+                            long totalRxBytesBefore;
+                            long totalRxBytesAfter;
+                            long totalTxBytesBefore;
+                            long totalTxBytesAfter;
 
+                            // TODO here do same for Tx
+                            // Get initial value
+                            totalRxBytesBefore = TrafficStats.getTotalRxBytes();
+                            totalTxBytesBefore = TrafficStats.getTotalTxBytes();
                             // Wait some time
                             try {
-                                Thread.sleep(1000);
+                                Thread.sleep(200);
                             } catch (InterruptedException e) {
+                                // We are terminating the thread from onDestroy().
                                 return;
                             }
                             // Get next value and calculate the speed
-
+                            totalRxBytesAfter = TrafficStats.getTotalRxBytes();
+                            totalTxBytesAfter = TrafficStats.getTotalTxBytes();
                             // Publish to main thread
                             Message message = mainHandler.obtainMessage();
                             Bundle data = new Bundle();
-                            data.putDouble(NetMonitorService.UPLOAD_KEY, 10);
-                            data.putDouble(NetMonitorService.DOWNLOAD_KEY, 20);
+                            data.putLong(NetMonitorService.UPLOAD_KEY, totalTxBytesAfter - totalTxBytesBefore);
+                            data.putLong(NetMonitorService.DOWNLOAD_KEY, totalRxBytesAfter - totalRxBytesBefore);
                             message.setData(data);
                             mainHandler.sendMessage(message);
                         }
