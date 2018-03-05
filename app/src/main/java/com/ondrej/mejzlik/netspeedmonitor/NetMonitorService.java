@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.TrafficStats;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -31,6 +32,7 @@ public class NetMonitorService extends Service {
     private Notification.Builder builder = null;
     private Notification notification = null;
     private NotificationManager notificationManager = null;
+    private TrafficStats trafficStats = null;
 
     /**
      * Screen On and Off broadcasts can not be received by manifest declared receivers, it has to be
@@ -117,22 +119,25 @@ public class NetMonitorService extends Service {
                     public void run() {
                         // Static method that returns the current thread interrupt status set by thread
                         // interrupt(method). On return the thread dies.
-                        int i = 0;
                         while (!Thread.interrupted()) {
-                            // TODO implement file observer to measure net speed
-                            i++;
-                            Message message = mainHandler.obtainMessage();
-                            Bundle data = new Bundle();
-                            data.putDouble(NetMonitorService.UPLOAD_KEY, 10 + i);
-                            data.putDouble(NetMonitorService.DOWNLOAD_KEY, 100 + i);
-                            message.setData(data);
-                            mainHandler.sendMessage(message);
+                            // TODO Get traffic stats to calculate the speed
+                            // Get initial value
 
+                            // Wait some time
                             try {
-                                Thread.sleep(2000);
+                                Thread.sleep(1000);
                             } catch (InterruptedException e) {
                                 return;
                             }
+                            // Get next value and calculate the speed
+
+                            // Publish to main thread
+                            Message message = mainHandler.obtainMessage();
+                            Bundle data = new Bundle();
+                            data.putDouble(NetMonitorService.UPLOAD_KEY, 10);
+                            data.putDouble(NetMonitorService.DOWNLOAD_KEY, 20);
+                            message.setData(data);
+                            mainHandler.sendMessage(message);
                         }
                         Log.d("THREAD", "INTERRUPTED");
                         Log.d("THREAD", "DEAD");
