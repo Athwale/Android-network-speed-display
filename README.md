@@ -6,4 +6,4 @@ Currently:
 Working on creating a bitmap icon for the notification bar
 
 How to run this project:
-Once the project is imported into Android Studio you may need to set Sdk location again in settings. To run the code, since this does not have any main activity, you need to edit Run -> Edit configurations -> set Nothing to Launch options
+Once the project is imported into Android Studio you may need to set Sdk location again in settings. To run the code, since this does not have any main activity, you need to edit Run -> Edit configurations -> set Nothing to Launch options.
